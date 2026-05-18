@@ -1,5 +1,8 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const google: any;
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ER } from '@/lib/tokens';
 import { Icon } from '@/components/ui/Icon';
@@ -34,8 +37,8 @@ export default function PlacesAutocomplete({
   const [query, setQuery] = useState(defaultValue);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null);
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const serviceRef = useRef<any>(null);
+  const geocoderRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
