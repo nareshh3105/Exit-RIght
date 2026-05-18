@@ -12,11 +12,11 @@ import { ER } from '@/lib/tokens';
 import { getRecommendation } from '@/lib/api/routes';
 import type { TransportMode, CrowdLevel, TransportOption } from '@/types';
 
-const FALLBACK_MODES = [
-  { mode: 'cab'  as TransportMode, name: 'Cab',         eta: '14 min', cost: '₹148', crowd: 1 as CrowdLevel, safety: 9, conf: 92, best: true,  route: '/cabs'    },
-  { mode: 'auto' as TransportMode, name: 'Shared Auto', eta: '22 min', cost: '₹35',  crowd: 2 as CrowdLevel, safety: 7, conf: 74, cheapest: true, route: '/compare' },
-  { mode: 'bus'  as TransportMode, name: 'Bus 21G',     eta: '28 min', cost: '₹18',  crowd: 3 as CrowdLevel, safety: 6, conf: 58, route: '/compare' },
-  { mode: 'walk' as TransportMode, name: 'Walking',     eta: '1h 12m', cost: 'Free', crowd: 0 as CrowdLevel, safety: 4, conf: 22, avoid: true, route: '/compare' },
+const FALLBACK_MODES: Array<{ mode: TransportMode; name: string; eta: string; cost: string; crowd: CrowdLevel; safety: number; conf: number; best: boolean; cheapest: boolean; avoid: boolean; route: string }> = [
+  { mode: 'cab'  as TransportMode, name: 'Cab',         eta: '14 min', cost: '₹148', crowd: 1 as CrowdLevel, safety: 9, conf: 92, best: true,  cheapest: false, avoid: false, route: '/cabs'    },
+  { mode: 'auto' as TransportMode, name: 'Shared Auto', eta: '22 min', cost: '₹35',  crowd: 2 as CrowdLevel, safety: 7, conf: 74, best: false, cheapest: true,  avoid: false, route: '/compare' },
+  { mode: 'bus'  as TransportMode, name: 'Bus 21G',     eta: '28 min', cost: '₹18',  crowd: 3 as CrowdLevel, safety: 6, conf: 58, best: false, cheapest: false, avoid: false, route: '/compare' },
+  { mode: 'walk' as TransportMode, name: 'Walking',     eta: '1h 12m', cost: 'Free', crowd: 0 as CrowdLevel, safety: 4, conf: 22, best: false, cheapest: false, avoid: true,  route: '/compare' },
 ];
 
 function RMini({ icon, label }: { icon: React.ReactNode; label: string }) {
