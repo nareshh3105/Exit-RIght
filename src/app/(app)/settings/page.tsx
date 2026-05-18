@@ -28,8 +28,7 @@ function Row({ icon, tint, label, detail, toggle, on, onToggle }: {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: `1px solid ${ER.line2}` }}>
       <div style={{ width: 32, height: 32, borderRadius: 9, background: tint + '1F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {/* @ts-expect-error */}
-        <Icon name={icon} size={16} color={tint}/>
+        <Icon name={icon as any} size={16} color={tint}/>
       </div>
       <div style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{label}</div>
       {toggle

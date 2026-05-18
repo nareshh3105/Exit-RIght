@@ -39,8 +39,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
           }}
         >
           {iconName && (
-            // @ts-expect-error -- iconName is dynamic
-            <Icon name={iconName} size={18} color={ER.mute} />
+            <Icon name={iconName as any} size={18} color={ER.mute} />
           )}
           <input
             ref={ref}
@@ -56,8 +55,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             {...props}
           />
           {trailingIcon && (
-            // @ts-expect-error -- trailingIcon is dynamic
-            <Icon name={trailingIcon} size={18} color={ER.mute} />
+            <Icon name={trailingIcon as any} size={18} color={ER.mute} />
           )}
         </div>
         {hint && !error && (

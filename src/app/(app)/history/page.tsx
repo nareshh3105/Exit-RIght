@@ -94,7 +94,7 @@ export default function HistoryPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                       <Pill bg={ER.bg} color={ER.ink2}>Gate {t.gateUsed}</Pill>
-                      <Pill bg={ER.bg} color={ER.ink2}>{/* @ts-expect-error */}<Icon name={t.modeUsed} size={11} color={ER.ink2}/></Pill>
+                      <Pill bg={ER.bg} color={ER.ink2}><Icon name={t.modeUsed as any} size={11} color={ER.ink2}/></Pill>
                       <Pill bg={ER.bg} color={ER.ink2} mono>₹{t.actualCost}</Pill>
                       {t.tag && <Pill bg={tag.bg} color={tag.fg}>{t.tag}</Pill>}
                     </div>

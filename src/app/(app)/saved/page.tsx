@@ -48,8 +48,7 @@ export default function SavedPage() {
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: s.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {/* @ts-expect-error dynamic icon */}
-              <Icon name={s.icon} size={22} color={s.color}/>
+              <Icon name={s.icon as any} size={22} color={s.color}/>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>{s.name}</div>
