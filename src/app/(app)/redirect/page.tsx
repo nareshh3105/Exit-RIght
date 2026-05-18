@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui/Icon';
 import { ER } from '@/lib/tokens';
@@ -11,7 +11,7 @@ const WEB_FALLBACKS: Record<string, string> = {
   'Namma Yatri': 'https://nammayatri.in',
 };
 
-export default function RedirectPage() {
+function RedirectContent() {
   const router      = useRouter();
   const params      = useSearchParams();
   const brand       = params.get('brand') ?? 'Uber';
@@ -34,7 +34,7 @@ export default function RedirectPage() {
     return () => clearTimeout(t);
   }, [count, router, deepLink, brand]);
 
-  const circumference = 2 * Math.PI * 36; // r=36
+  const circumference = 2 * Math.PI * 36;
 
   return (
     <div style={{
@@ -43,7 +43,6 @@ export default function RedirectPage() {
       justifyContent: 'center', fontFamily: 'inherit', gap: 20,
       padding: 32, boxSizing: 'border-box',
     }}>
-      {/* Countdown ring */}
       <div style={{ width: 80, height: 80, borderRadius: 99, background: 'rgba(16,185,129,0.15)', border: `2px solid ${ER.green}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <svg viewBox="0 0 80 80" width="80" height="80" style={{ position: 'absolute' }}>
           <circle cx="40" cy="40" r="36" fill="none" stroke={ER.green} strokeWidth="3"
@@ -81,5 +80,13 @@ export default function RedirectPage() {
         Cancel
       </button>
     </div>
+  );
+}
+
+export default function RedirectPage() {
+  return (
+    <Suspense>
+      <RedirectContent />
+    </Suspense>
   );
 }
