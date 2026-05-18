@@ -45,7 +45,7 @@ export default function PlacesAutocomplete({
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey || typeof window === 'undefined') return;
 
-    if (window.google?.maps?.places) {
+    if ((window as any).google?.maps?.places) {
       serviceRef.current = new google.maps.places.AutocompleteService();
       geocoderRef.current = new google.maps.Geocoder();
       return;
@@ -76,7 +76,7 @@ export default function PlacesAutocomplete({
         ),
         componentRestrictions: { country: 'in' },
       },
-      (results) => {
+      (results: any) => {
         setPredictions(results ?? []);
         setShowDropdown(!!results?.length);
       },
@@ -90,7 +90,7 @@ export default function PlacesAutocomplete({
 
       if (!geocoderRef.current) return;
 
-      geocoderRef.current.geocode({ placeId: prediction.place_id }, (results, status) => {
+      geocoderRef.current.geocode({ placeId: prediction.place_id }, (results: any, status: any) => {
         if (status === 'OK' && results?.[0]) {
           const loc = results[0].geometry.location;
           onSelect({

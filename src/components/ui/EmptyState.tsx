@@ -1,7 +1,7 @@
 'use client';
 
 import { ER } from '@/lib/tokens';
-import Icon from './Icon';
+import { Icon } from './Icon';
 
 interface EmptyStateProps {
   icon?: string;
@@ -21,7 +21,7 @@ export default function EmptyState({ icon = 'search', title, subtitle }: EmptySt
         gap: 12,
       }}
     >
-      <Icon name={icon} size={40} color={ER.mute} />
+      <Icon name={icon as any} size={40} color={ER.mute} />
       <p style={{ color: ER.ink2, fontSize: 16, fontWeight: 600, margin: 0 }}>{title}</p>
       {subtitle && (
         <p style={{ color: ER.mute, fontSize: 14, margin: 0, textAlign: 'center' }}>{subtitle}</p>
