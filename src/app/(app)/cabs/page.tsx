@@ -10,29 +10,22 @@ import { ER } from '@/lib/tokens';
 import { getCabProviders } from '@/lib/api/routes';
 import type { CabProvider } from '@/types';
 
-const FALLBACK_CABS: CabProvider[] = [
-  { id: '1', brand: 'Uber',        type: 'Go',       monogram: 'U', brandColor: '#0F172A', price: 148, etaMinutes: 3,  rating: 4.8, isRecommended: true, note: 'Auto-suggest · matches budget', deepLinkUrl: 'uber://' },
-  { id: '2', brand: 'Namma Yatri', type: 'Auto',     monogram: 'N', brandColor: '#F59E0B', price: 92,  etaMinutes: 5,  rating: 4.6, isCheapest: true, badge: 'Zero commission', deepLinkUrl: 'nammayatri://' },
-  { id: '3', brand: 'Ola',         type: 'Mini',     monogram: 'O', brandColor: '#10B981', price: 161, etaMinutes: 4,  rating: 4.7, surgeMultiplier: 1.1, deepLinkUrl: 'olacabs://' },
-  { id: '4', brand: 'Rapido',      type: 'Cab Lite', monogram: 'R', brandColor: '#2563EB', price: 154, etaMinutes: 7,  rating: 4.5, deepLinkUrl: 'rapido://' },
-];
 const SORT_OPTIONS = ['Recommended', 'Cheapest', 'Fastest', 'Rated'] as const;
 
 export default function CabsPage() {
   const router = useRouter();
-  const { recommendation, toLat, toLng, setCabProviders } = useRouteStore();
-  const [cabs, setCabs] = useState<CabProvider[]>(FALLBACK_CABS);
+  const { recommendation, toLat, toLng, toDestination, setCabProviders } = useRouteStore();
+  const [cabs, setCabs] = useState<CabProvider[]>([]);
   const [sortBy, setSortBy] = useState<typeof SORT_OPTIONS[number]>('Recommended');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const gate = recommendation?.gateRecommendation;
       const pickupLat = toLat ?? 12.9766;
       const pickupLng = toLng ?? 80.2207;
-      const dropLat = toLat ?? 12.9916;
-      const dropLng = toLng ?? 80.2146;
+      const dropLat   = toLat ?? 12.9916;
+      const dropLng   = toLng ?? 80.2146;
 
       const res = await getCabProviders(pickupLat, pickupLng, dropLat, dropLng);
       if (res.data && res.data.length > 0) {
@@ -59,7 +52,8 @@ export default function CabsPage() {
     router.push(`/redirect?brand=${encodeURIComponent(cab.brand)}&deepLink=${encodeURIComponent(cab.deepLinkUrl)}`);
   }
 
-  const CABS = sortedCabs;
+  const gateNum  = recommendation?.gateRecommendation?.recommendedGate ?? '—';
+  const destName = toDestination || 'Destination';
 
   return (
     <div>
@@ -68,7 +62,7 @@ export default function CabsPage() {
           <BackBtn />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: ER.mute, letterSpacing: 0.4, textTransform: 'uppercase' }}>Pick a ride</div>
-            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.3 }}>Cab providers · {CABS.length}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.3 }}>Cab providers {loading ? '' : `· ${sortedCabs.length}`}</div>
           </div>
           <div style={{ padding: '5px 9px', borderRadius: 999, background: ER.greenS, display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 5, height: 5, borderRadius: 99, background: ER.green }}/>
@@ -77,8 +71,7 @@ export default function CabsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: ER.bg, border: `1px solid ${ER.line2}` }}>
           <Icon name="pin" size={15} color={ER.green}/>
-          <div style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>Gate 2 → Phoenix Marketcity</div>
-          <span style={{ fontSize: 11, color: ER.mute, fontWeight: 600 }}>6.2 km · 14 min</span>
+          <div style={{ fontSize: 12.5, fontWeight: 600, flex: 1 }}>Gate {gateNum} → {destName}</div>
         </div>
       </div>
 
@@ -97,7 +90,17 @@ export default function CabsPage() {
 
       {/* Cab cards */}
       <div style={{ padding: '10px 20px 32px' }}>
-        {CABS.map((c) => (
+        {loading ? (
+          <>
+            <Skeleton height={120} />
+            <Skeleton height={120} />
+            <Skeleton height={120} />
+          </>
+        ) : sortedCabs.length === 0 ? (
+          <div style={{ padding: '40px 0', textAlign: 'center', color: ER.mute, fontSize: 14 }}>
+            No cab providers available right now.
+          </div>
+        ) : sortedCabs.map((c) => (
           <div key={c.id} style={{
             background: '#fff', borderRadius: 18, padding: 14, marginBottom: 10,
             border: c.isRecommended ? `1.5px solid ${ER.green}` : `1px solid ${ER.line}`,
@@ -130,8 +133,8 @@ export default function CabsPage() {
                 <div style={{ fontSize: 10, color: ER.mute, fontWeight: 600, marginTop: 2 }}>est. fare</div>
               </div>
             </div>
-            {c.note   && <div style={{ marginTop: 8, fontSize: 11.5, color: ER.ink3, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="info" size={12} color={ER.ink3}/> {c.note}</div>}
-            {c.badge  && <div style={{ marginTop: 6 }}><Pill bg={ER.amberS} color="#92400E">★ {c.badge}</Pill></div>}
+            {c.note  && <div style={{ marginTop: 8, fontSize: 11.5, color: ER.ink3, display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="info" size={12} color={ER.ink3}/> {c.note}</div>}
+            {c.badge && <div style={{ marginTop: 6 }}><Pill bg={ER.amberS} color="#92400E">★ {c.badge}</Pill></div>}
             <button onClick={() => openProvider(c)} style={{
               width: '100%', marginTop: 12, height: 44, borderRadius: 12,
               background: c.isRecommended ? ER.green : ER.bg,

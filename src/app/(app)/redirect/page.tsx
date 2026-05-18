@@ -58,7 +58,7 @@ function RedirectContent() {
         <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Redirecting to</div>
         <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.8 }}>{brand}</div>
         <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', marginTop: 8, lineHeight: 1.5 }}>
-          Opening {brand} with your pickup at Gate 2, Guindy Metro.
+          Opening {brand} for your ride.
         </div>
       </div>
 

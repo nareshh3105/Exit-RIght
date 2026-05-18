@@ -8,12 +8,6 @@ import { Icon } from '@/components/ui/Icon';
 import { ER } from '@/lib/tokens';
 import type { TripHistory } from '@/types';
 
-const DEMO_TRIPS: TripHistory[] = [
-  { id:'1', userId:'', fromStation:'Guindy',     toDestination:'Tidel Park',    toAddress:'', departedAt: new Date().toISOString(), gateUsed:1, modeUsed:'cab',  actualCost:128, safetyModeActive:false, tag:'On-time',      tagTone:'good'   },
-  { id:'2', userId:'', fromStation:'Tidel Park', toDestination:'Home',          toAddress:'', departedAt: new Date(Date.now()-3600000).toISOString(), gateUsed:3, modeUsed:'auto', actualCost:42,  safetyModeActive:false, tag:'Cheaper est.', tagTone:'good'   },
-  { id:'3', userId:'', fromStation:'Egmore',     toDestination:'Home',          toAddress:'', departedAt: new Date(Date.now()-86400000).toISOString(), gateUsed:2, modeUsed:'cab',  actualCost:186, safetyModeActive:true,  tag:'Safety mode', tagTone:'safety' },
-];
-
 function groupByDay(trips: TripHistory[]) {
   const today     = new Date().toDateString();
   const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -29,53 +23,69 @@ function groupByDay(trips: TripHistory[]) {
 export default function HistoryPage() {
   const router  = useRouter();
   const profile = useAuthStore(s => s.profile);
-  const [trips, setTrips]   = useState<TripHistory[]>(DEMO_TRIPS);
-  const [stats, setStats]   = useState({ totalTrips: 28, totalSaved: 1240, topGate: 2 });
+  const [trips, setTrips] = useState<TripHistory[]>([]);
+  const [stats, setStats] = useState({ totalTrips: 0, totalSaved: 0, topGate: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!profile) return;
-    getTripHistory(profile.id).then(({ data }) => { if (data?.data.length) setTrips(data.data); });
-    getTripStats(profile.id).then(s => { if (s) setStats({ totalTrips: s.totalTrips, totalSaved: s.totalSaved, topGate: s.topGate ?? 2 }); });
+    Promise.all([
+      getTripHistory(profile.id),
+      getTripStats(profile.id),
+    ]).then(([tripsRes, statsRes]) => {
+      if (tripsRes.data?.data.length) setTrips(tripsRes.data.data);
+      if (statsRes) setStats({ totalTrips: statsRes.totalTrips, totalSaved: statsRes.totalSaved, topGate: statsRes.topGate ?? 0 });
+      setLoading(false);
+    });
   }, [profile]);
 
   const groups = groupByDay(trips);
   const tagStyle: Record<string, { bg: string; fg: string }> = {
-    good:   { bg: ER.greenS,    fg: '#047857' },
-    safety: { bg: '#F5F3FF',    fg: '#7C3AED' },
+    good:   { bg: ER.greenS, fg: '#047857' },
+    safety: { bg: '#F5F3FF', fg: '#7C3AED' },
   };
 
   return (
     <div>
       <div style={{ padding: '52px 20px 14px' }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: ER.mute, letterSpacing: 0.4, textTransform: 'uppercase' }}>
-          May · {stats.totalTrips} trips
+          {stats.totalTrips} trips
         </div>
         <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: -0.6, marginTop: 2 }}>History</div>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '0 20px 16px' }}>
-        {[
-          { label: 'Saved',    value: `₹${stats.totalSaved.toLocaleString('en-IN')}`, tone: ER.green },
-          { label: 'Avg ETA',  value: '17 m',                                          tone: ER.ink   },
-          { label: 'Top gate', value: `Gate ${stats.topGate}`,                         tone: ER.blue  },
-        ].map(s => (
-          <div key={s.label} style={{ padding: 12, borderRadius: 14, background: '#fff', border: `1px solid ${ER.line}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ER.mute, letterSpacing: 0.5, textTransform: 'uppercase' }}>{s.label}</div>
-            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.3, color: s.tone, marginTop: 4 }}>{s.value}</div>
-          </div>
-        ))}
-      </div>
+      {stats.totalTrips > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '0 20px 16px' }}>
+          {[
+            { label: 'Saved',    value: `₹${stats.totalSaved.toLocaleString('en-IN')}`, tone: ER.green },
+            { label: 'Trips',    value: `${stats.totalTrips}`,                           tone: ER.ink   },
+            { label: 'Top gate', value: stats.topGate ? `Gate ${stats.topGate}` : '—',  tone: ER.blue  },
+          ].map(s => (
+            <div key={s.label} style={{ padding: 12, borderRadius: 14, background: '#fff', border: `1px solid ${ER.line}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: ER.mute, letterSpacing: 0.5, textTransform: 'uppercase' }}>{s.label}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.3, color: s.tone, marginTop: 4 }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Grouped trips */}
       <div style={{ padding: '0 20px 24px' }}>
-        {Object.entries(groups).map(([day, dayTrips]) => (
+        {loading ? (
+          <div style={{ color: ER.mute, fontSize: 13, padding: '16px 0' }}>Loading trips…</div>
+        ) : trips.length === 0 ? (
+          <div style={{ padding: '40px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: ER.ink2 }}>No trips yet</div>
+            <div style={{ fontSize: 13, color: ER.mute, marginTop: 4 }}>Your commute history will appear here.</div>
+          </div>
+        ) : Object.entries(groups).map(([day, dayTrips]) => (
           <div key={day} style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.8, color: ER.ink }}>{day}</span>
               <span style={{ flex: 1, height: 1, background: ER.line }}/>
             </div>
-            {dayTrips.map((t, ti) => {
+            {dayTrips.map((t) => {
               const tag = tagStyle[t.tagTone ?? 'good'];
               const time = new Date(t.departedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
               return (

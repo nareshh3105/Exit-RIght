@@ -12,44 +12,41 @@ export default function ComparePage() {
   const { recommendation, toDestination } = useRouteStore();
 
   const options = recommendation?.transportOptions ?? [];
+  const gateNum  = recommendation?.gateRecommendation?.recommendedGate ?? '—';
+  const destName = toDestination || 'Destination';
+  const aiTake   = recommendation?.aiTake ?? '';
 
-  const MODES = options.length > 0
-    ? options.map(o => ({
-        mode: o.mode as 'cab' | 'auto' | 'bus' | 'walk',
-        name: o.name,
-        eta: o.eta,
-        cost: o.cost,
-        best: o.isRecommended ?? false,
-        avoid: o.shouldAvoid ?? false,
-      }))
-    : [
-        { mode: 'cab'  as const, name: 'Cab',         eta: '14m', cost: '₹148', best: true,  avoid: false },
-        { mode: 'auto' as const, name: 'Shared Auto', eta: '22m', cost: '₹35',  best: false, avoid: false },
-        { mode: 'bus'  as const, name: 'Bus 21G',     eta: '28m', cost: '₹18',  best: false, avoid: false },
-        { mode: 'walk' as const, name: 'Walking',     eta: '1h',  cost: 'Free', best: false, avoid: true  },
-      ];
+  if (options.length === 0) {
+    return (
+      <div style={{ padding: '52px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <BackBtn />
+          <div style={{ fontSize: 18, fontWeight: 700 }}>Compare all</div>
+        </div>
+        <div style={{ textAlign: 'center', color: ER.mute, fontSize: 14, paddingTop: 40 }}>
+          No route data yet. Start from the home screen.
+        </div>
+      </div>
+    );
+  }
 
-  const ROWS = options.length > 0
-    ? [
-        { label: 'Time',    values: options.map(o => o.eta),                                            best: 0 },
-        { label: 'Cost',    values: options.map(o => o.cost),                                           best: options.findIndex(o => o.isCheapest) },
-        { label: 'Comfort', values: options.map((_, i) => [5,3,2,2][i] ?? 2),   type: 'bars' as const },
-        { label: 'Safety',  values: options.map(o => o.safetyScore),             type: 'bars' as const },
-        { label: 'Crowd',   values: options.map(o => o.crowdLevel),              type: 'crowd' as const },
-        { label: 'Weather', values: options.map(o => o.safetyScore >= 6 ? 'OK' : '⚠︎'), type: 'text' as const },
-      ]
-    : [
-        { label: 'Time',    values: ['14m','22m','28m','1h+'],   best: 0 },
-        { label: 'Cost',    values: ['₹148','₹35','₹18','Free'], best: 3 },
-        { label: 'Comfort', values: [5,3,2,2],   type: 'bars' as const },
-        { label: 'Safety',  values: [9,7,6,4],   type: 'bars' as const },
-        { label: 'Crowd',   values: [1,2,3,0],   type: 'crowd' as const },
-        { label: 'Weather', values: ['OK','OK','OK','⚠︎'], type: 'text' as const },
-      ];
+  const MODES = options.map(o => ({
+    mode: o.mode as 'cab' | 'auto' | 'bus' | 'walk',
+    name: o.name,
+    eta: o.eta,
+    best: o.isRecommended ?? false,
+    avoid: o.shouldAvoid ?? false,
+  }));
 
-  const gateNum = recommendation?.gateRecommendation?.recommendedGate ?? 2;
-  const destName = toDestination || 'Phoenix';
-  const aiTake = recommendation?.aiTake ?? 'Cab wins on time + safety in rain. Save ₹113 if you wait 10 min and split a shared auto.';
+  const ROWS = [
+    { label: 'Time',    values: options.map(o => o.eta),                                          best: 0 },
+    { label: 'Cost',    values: options.map(o => o.cost),                                         best: options.findIndex(o => o.isCheapest) },
+    { label: 'Comfort', values: options.map((_, i) => [5,3,2,2][i] ?? 2), type: 'bars'  as const },
+    { label: 'Safety',  values: options.map(o => o.safetyScore),           type: 'bars'  as const },
+    { label: 'Crowd',   values: options.map(o => o.crowdLevel),            type: 'crowd' as const },
+    { label: 'Weather', values: options.map(o => o.safetyScore >= 6 ? 'OK' : '⚠︎'), type: 'text' as const },
+  ];
+
   return (
     <div>
       <div style={{ padding: '52px 20px 14px', borderBottom: `1px solid ${ER.line}`, background: '#fff' }}>
@@ -115,17 +112,17 @@ export default function ComparePage() {
         </div>
 
         {/* AI take */}
-        <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: ER.ink, color: '#fff', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ width: 30, height: 30, borderRadius: 99, flexShrink: 0, background: 'rgba(16,185,129,0.2)', border: `1px solid ${ER.green}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="sparkle" size={14} color={ER.green}/>
-          </div>
-          <div>
-            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 3 }}>Our take</div>
-            <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45 }}>
-              {aiTake}
+        {aiTake && (
+          <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: ER.ink, color: '#fff', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ width: 30, height: 30, borderRadius: 99, flexShrink: 0, background: 'rgba(16,185,129,0.2)', border: `1px solid ${ER.green}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="sparkle" size={14} color={ER.green}/>
+            </div>
+            <div>
+              <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 3 }}>Our take</div>
+              <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.45 }}>{aiTake}</div>
             </div>
           </div>
-        </div>
+        )}
 
         <button onClick={() => router.push('/cabs')} style={{
           width: '100%', marginTop: 12, height: 54, borderRadius: 14, background: ER.green, color: '#062B1F',

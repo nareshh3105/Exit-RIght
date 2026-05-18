@@ -12,12 +12,6 @@ import { ER } from '@/lib/tokens';
 import { getRecommendation } from '@/lib/api/routes';
 import type { TransportMode, CrowdLevel, TransportOption } from '@/types';
 
-const FALLBACK_MODES: Array<{ mode: TransportMode; name: string; eta: string; cost: string; crowd: CrowdLevel; safety: number; conf: number; best: boolean; cheapest: boolean; avoid: boolean; route: string }> = [
-  { mode: 'cab'  as TransportMode, name: 'Cab',         eta: '14 min', cost: '₹148', crowd: 1 as CrowdLevel, safety: 9, conf: 92, best: true,  cheapest: false, avoid: false, route: '/cabs'    },
-  { mode: 'auto' as TransportMode, name: 'Shared Auto', eta: '22 min', cost: '₹35',  crowd: 2 as CrowdLevel, safety: 7, conf: 74, best: false, cheapest: true,  avoid: false, route: '/compare' },
-  { mode: 'bus'  as TransportMode, name: 'Bus 21G',     eta: '28 min', cost: '₹18',  crowd: 3 as CrowdLevel, safety: 6, conf: 58, best: false, cheapest: false, avoid: false, route: '/compare' },
-  { mode: 'walk' as TransportMode, name: 'Walking',     eta: '1h 12m', cost: 'Free', crowd: 0 as CrowdLevel, safety: 4, conf: 22, best: false, cheapest: false, avoid: true,  route: '/compare' },
-];
 
 function RMini({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -33,12 +27,10 @@ export default function RecommendationPage() {
   const { fromStation, toDestination, toLat, toLng, setRecommendation } = useRouteStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [recGate, setRecGate] = useState(2);
-  const [gateReasons, setGateReasons] = useState<string[]>(['Closest to destination', 'Less crowded', 'Covered walkway']);
-  const [altGates, setAltGates] = useState<Array<{n: number; w: string; t: string}>>([
-    {n: 1, w: '+ 3 min', t: 'ok'}, {n: 3, w: 'Crowded', t: 'bad'}, {n: 4, w: '+ 7 min', t: 'bad'}
-  ]);
-  const [MODES, setMODES] = useState(FALLBACK_MODES);
+  const [recGate, setRecGate] = useState(0);
+  const [gateReasons, setGateReasons] = useState<string[]>([]);
+  const [altGates, setAltGates] = useState<Array<{n: number; w: string; t: string}>>([]);
+  const [MODES, setMODES] = useState<Array<{ mode: TransportMode; name: string; eta: string; cost: string; crowd: CrowdLevel; safety: number; conf: number; best: boolean; cheapest: boolean; avoid: boolean; route: string }>>([]);
 
   useEffect(() => {
     async function load() {

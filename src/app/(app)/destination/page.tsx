@@ -10,19 +10,6 @@ import { ER } from '@/lib/tokens';
 import { getSavedRoutes } from '@/lib/api/saved';
 import type { SavedRoute } from '@/types';
 
-const FALLBACK_SUGGESTIONS = [
-  { name: 'Phoenix Marketcity',  addr: 'Velachery Main Rd · 3.2 km', icon: 'bag'  as const },
-  { name: 'Tidel Park IT Hub',   addr: 'Taramani · 4.1 km',          icon: 'bag'  as const },
-  { name: 'IIT Madras Gate 4',   addr: 'Sardar Patel Rd · 0.9 km',   icon: 'flag' as const },
-  { name: 'Mahabalipuram Beach', addr: 'ECR · 52 km',                 icon: 'star' as const },
-];
-const FALLBACK_QUICK = [
-  { label: 'Home',   icon: 'home' as const, color: ER.green },
-  { label: 'Office', icon: 'bag'  as const, color: ER.blue  },
-  { label: 'College',icon: 'flag' as const, color: ER.amber },
-  { label: 'Add',    icon: 'plus' as const, color: ER.mute  },
-];
-
 export default function DestinationPage() {
   const router = useRouter();
   const profile = useAuthStore(s => s.profile);
@@ -37,24 +24,22 @@ export default function DestinationPage() {
     }
   }, [profile?.id]);
 
-  const QUICK = savedRoutes.length > 0
-    ? [
-        ...savedRoutes.slice(0, 3).map(r => ({
-          label: r.name,
-          icon: (r.icon || 'pin') as 'home' | 'bag' | 'flag' | 'pin',
-          color: r.color || ER.green,
-          lat: r.destinationLat,
-          lng: r.destinationLng,
-          address: r.address,
-        })),
-        { label: 'Add', icon: 'plus' as const, color: ER.mute },
-      ]
-    : FALLBACK_QUICK;
-
   function select(name: string, addr: string, lat?: number, lng?: number) {
     setDestination(name, addr, lat, lng);
     router.push('/recommendation');
   }
+
+  const quickSlots = [
+    ...savedRoutes.slice(0, 3).map(r => ({
+      label: r.name,
+      icon: (r.icon || 'pin') as any,
+      color: r.color || ER.green,
+      lat: r.destinationLat,
+      lng: r.destinationLng,
+      address: r.address,
+    })),
+    { label: 'Add', icon: 'plus' as any, color: ER.mute, lat: undefined, lng: undefined, address: '' },
+  ];
 
   return (
     <div>
@@ -88,36 +73,18 @@ export default function DestinationPage() {
       {/* Quick saves */}
       <div style={{ padding: '16px 20px 4px' }}>
         <div style={{ display: 'flex', gap: 8 }}>
-          {QUICK.map(r => (
-            <div key={r.label} className="er-tap" onClick={() => r.label !== 'Add' && select(r.label, ('address' in r ? (r as any).address : ''), ('lat' in r ? (r as any).lat : undefined), ('lng' in r ? (r as any).lng : undefined))} style={{
-              flex: 1, height: 64, borderRadius: 14, background: '#fff', border: `1px solid ${ER.line}`,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-            }}>
+          {quickSlots.map(r => (
+            <div key={r.label} className="er-tap"
+              onClick={() => r.label !== 'Add' ? select(r.label, r.address ?? '', r.lat, r.lng) : router.push('/saved')}
+              style={{
+                flex: 1, height: 64, borderRadius: 14, background: '#fff', border: `1px solid ${ER.line}`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+              }}>
               <Icon name={r.icon} size={18} color={r.color}/>
               <div style={{ fontSize: 11.5, fontWeight: 600 }}>{r.label}</div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Suggestions */}
-      <div style={{ padding: '16px 20px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: ER.mute, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Suggestions</div>
-        {FALLBACK_SUGGESTIONS.map((s, i) => (
-          <div key={i} className="er-tap" onClick={() => select(s.name, s.addr)} style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '13px 0', borderBottom: i < FALLBACK_SUGGESTIONS.length - 1 ? `1px solid ${ER.line2}` : 'none',
-          }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: ER.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={s.icon} size={16} color={ER.ink3}/>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 600, letterSpacing: -0.2 }}>{s.name}</div>
-              <div style={{ fontSize: 12, color: ER.mute, marginTop: 2 }}>{s.addr}</div>
-            </div>
-            <Icon name="arrow" size={16} color={ER.mute}/>
-          </div>
-        ))}
       </div>
     </div>
   );
