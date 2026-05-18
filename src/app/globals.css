@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --er-ink:    #0F172A;
+  --er-ink2:   #1E293B;
+  --er-ink3:   #334155;
+  --er-mute:   #64748B;
+  --er-mute2:  #94A3B8;
+  --er-line:   #E2E8F0;
+  --er-line2:  #EEF1F5;
+  --er-bg:     #F7F8FA;
+  --er-green:  #10B981;
+  --er-greens: #ECFDF5;
+  --er-amber:  #F59E0B;
+  --er-ambers: #FFFBEB;
+  --er-red:    #EF4444;
+  --er-reds:   #FEF2F2;
+  --er-blue:   #2563EB;
+  --er-blues:  #EFF6FF;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-inter), -apple-system, system-ui, sans-serif;
+}
+
+/* Hide scrollbar but keep scrollable */
+.er-scroll { overflow-y: auto; overflow-x: hidden; }
+.er-scroll::-webkit-scrollbar { display: none; }
+.er-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Tap feedback */
+.er-tap { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.er-tap:active { opacity: 0.72; transform: scale(0.985); transition: opacity 0.08s, transform 0.08s; }
+
+/* Page transitions */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.page-enter { animation: slideInRight 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both; }
+.page-fade  { animation: fadeIn 0.35s ease both; }
