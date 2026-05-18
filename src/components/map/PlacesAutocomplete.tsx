@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ER } from '@/lib/tokens';
-import Icon from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/Icon';
 
 interface PlacesAutocompleteProps {
   onSelect: (place: { name: string; address: string; lat: number; lng: number }) => void;
