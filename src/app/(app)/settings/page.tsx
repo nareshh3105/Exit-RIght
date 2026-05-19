@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Icon } from '@/components/ui/Icon';
@@ -49,6 +50,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function SettingsPage() {
+  const router  = useRouter();
   const profile = useAuthStore(s => s.profile);
   const logout  = useAuthStore(s => s.logout);
   const {
@@ -100,7 +102,7 @@ export default function SettingsPage() {
 
       {/* Sign out */}
       <div style={{ padding: '20px 20px 0' }}>
-        <button onClick={() => logout()} style={{
+        <button onClick={async () => { await logout(); router.push('/login'); }} style={{
           width: '100%', height: 50, borderRadius: 14, background: ER.redS,
           border: `1px solid ${ER.red}20`, color: ER.red,
           fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',

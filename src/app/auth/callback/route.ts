@@ -20,7 +20,32 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-    await supabase.auth.exchangeCodeForSession(code);
+
+    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (session?.user) {
+      const user = session.user;
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!existing) {
+        const fullName = user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User';
+        const initials = fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+        await supabase.from('profiles').insert({
+          id: user.id,
+          email: user.email,
+          full_name: fullName,
+          home_station: 'Guindy',
+          avatar_initials: initials,
+          preferred_mode: 'cab',
+          budget_cap: 200,
+          theme: 'auto',
+        });
+      }
+    }
   }
 
   return NextResponse.redirect(new URL(next, request.url));
