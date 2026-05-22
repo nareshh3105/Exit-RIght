@@ -1,61 +1,39 @@
-import { supabase } from '@/lib/supabase';
 import type { Station, ApiResponse } from '@/types';
 
-// ── Get all stations ──────────────────────────────────────────
+// ── Get all stations (via backend proxy — bypasses RLS) ───────
 export async function getStations(): Promise<ApiResponse<Station[]>> {
-  const { data, error } = await supabase
-    .from('stations')
-    .select('*')
-    .order('name');
-
-  if (error) return { data: null, error: error.message };
-
-  return {
-    data: data.map(s => ({
-      id: s.id,
-      name: s.name,
-      line: s.line,
-      lat: s.lat,
-      lng: s.lng,
-    })),
-    error: null,
-  };
+  try {
+    const res = await fetch('/api/stations');
+    if (!res.ok) return { data: null, error: 'Failed to load stations' };
+    const data: Station[] = await res.json();
+    return { data, error: null };
+  } catch {
+    return { data: null, error: 'Network error' };
+  }
 }
 
-// ── Search stations ───────────────────────────────────────────
+// ── Search stations (client-side filter after full fetch) ─────
 export async function searchStations(query: string): Promise<ApiResponse<Station[]>> {
-  const { data, error } = await supabase
-    .from('stations')
-    .select('*')
-    .ilike('name', `%${query}%`)
-    .order('name');
-
-  if (error) return { data: null, error: error.message };
-
+  const res = await getStations();
+  if (!res.data) return res;
+  const q = query.toLowerCase();
   return {
-    data: data.map(s => ({ id: s.id, name: s.name, line: s.line, lat: s.lat, lng: s.lng })),
+    data: res.data.filter(s => s.name.toLowerCase().includes(q)),
     error: null,
   };
 }
 
-// ── Get nearest station (requires user lat/lng) ───────────────
+// ── Get nearest station (via backend nearest_station RPC) ─────
 export async function getNearestStation(
   lat: number,
-  lng: number
+  lng: number,
 ): Promise<ApiResponse<Station>> {
-  // Uses PostGIS earth_distance or a custom SQL function.
-  // Ensure you have this RPC defined in Supabase:
-  //   create function nearest_station(user_lat float, user_lng float)
-  //   returns stations language sql as $$ ... $$;
-  const { data, error } = await supabase.rpc('nearest_station', {
-    user_lat: lat,
-    user_lng: lng,
-  });
-
-  if (error || !data) return { data: null, error: error?.message ?? 'Not found' };
-
-  return {
-    data: { id: data.id, name: data.name, line: data.line, isNearest: true },
-    error: null,
-  };
+  try {
+    const res = await fetch(`/api/stations/nearest?lat=${lat}&lng=${lng}`);
+    if (!res.ok) return { data: null, error: 'Not found' };
+    const data: Station = await res.json();
+    return { data: { ...data, isNearest: true }, error: null };
+  } catch {
+    return { data: null, error: 'Network error' };
+  }
 }
