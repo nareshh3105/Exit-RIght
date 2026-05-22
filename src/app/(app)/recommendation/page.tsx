@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRouteStore } from '@/store/useRouteStore';
 import { BackBtn } from '@/components/ui/BackBtn';
@@ -11,6 +11,14 @@ import ErrorCard from '@/components/ui/ErrorCard';
 import { ER } from '@/lib/tokens';
 import { getRecommendation } from '@/lib/api/routes';
 import type { TransportMode, CrowdLevel, TransportOption } from '@/types';
+
+function haversineM(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 
 function RMini({ icon, label }: { icon: React.ReactNode; label: string }) {
@@ -31,6 +39,25 @@ export default function RecommendationPage() {
   const [gateReasons, setGateReasons] = useState<string[]>([]);
   const [altGates, setAltGates] = useState<Array<{n: number; w: string; t: string}>>([]);
   const [MODES, setMODES] = useState<Array<{ mode: TransportMode; name: string; eta: string; cost: string; crowd: CrowdLevel; safety: number; conf: number; best: boolean; cheapest: boolean; avoid: boolean; route: string }>>([]);
+  const [hasExited, setHasExited] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
+
+  // GPS: watch for metro exit (>200m from station)
+  useEffect(() => {
+    if (!fromStation?.lat || !fromStation?.lng || !navigator.geolocation) return;
+    const stLat = fromStation.lat;
+    const stLng = fromStation.lng;
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const dist = haversineM(pos.coords.latitude, pos.coords.longitude, stLat, stLng);
+        if (dist > 200) setHasExited(true);
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000 },
+    );
+    return () => { if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current); };
+  }, [fromStation?.lat, fromStation?.lng]);
 
   useEffect(() => {
     async function load() {
@@ -135,6 +162,19 @@ export default function RecommendationPage() {
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, marginBottom: 14 }}>
           <div style={{ width: 36, height: 4, borderRadius: 99, background: ER.line }}/>
         </div>
+
+        {/* Exited metro banner */}
+        {hasExited && (
+          <div style={{ margin: '0 18px 16px', padding: '14px 16px', borderRadius: 16, background: ER.green, color: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 99, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="pin" size={18} color="#fff"/>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>You've exited the metro!</div>
+              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Choose your last-mile ride below.</div>
+            </div>
+          </div>
+        )}
 
         {/* Gate hero */}
         <div style={{ padding: '0 18px', marginBottom: 20 }}>
