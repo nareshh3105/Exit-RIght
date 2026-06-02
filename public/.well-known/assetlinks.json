@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.exitright.app",
+      "sha256_cert_fingerprints": [
+        "BE:3D:AF:7D:FA:C2:7A:DF:94:A1:D1:9A:AF:A6:7D:0B:1E:E5:C2:23:57:71:D4:EB:20:63:C1:97:EF:04:A5:38"
+      ]
+    }
+  }
+]
